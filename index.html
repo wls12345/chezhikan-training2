@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>车智勘V5｜车险理赔实训平台</title>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg-main:#040917;
+  --glass-bg:rgba(255,255,255,0.05);
+  --glass-border:rgba(255,255,255,0.10);
+  --primary:#3683f7;
+  --accent:#24d4ee;
+  --success:#23c65f;
+  --warning:#f69e0b;
+  --danger:#ef4444;
+  --card-white:#ffffff;
+  --text-dark:#111827;
+  --text-gray:#4b5563;
+  --text-light:#e5e7eb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-main);color:var(--text-dark);padding:16px;overflow-x:hidden;}
+.app{max-width:1440px;margin:0 auto;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;border-radius:10px;color:#fff;min-width:220px;animation:toastIn .3s;}
+.toast.success{background:var(--success);}
+.toast.warn{background:var(--warning);}
+.toast.error{background:var(--danger);}
+@keyframes toastIn{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+/*教师登录弹窗 */
+.login-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;}
+.login-modal.show{display:flex;}
+.login-card{width:92%;max-width:420px;background:#fff;border-radius:18px;padding:30px;box-shadow:0 10px 40px #00000050;}
+.login-card h2{text-align:center;margin-bottom:22px;color:#111;}
+.login-item{margin-bottom:16px;}
+.login-item label{display:block;margin-bottom:6px;font-size:14px;color:#333;}
+.login-item input{width:100%;padding:12px 14px;border:1px solid #ccc;border-radius:10px;font-size:15px;}
+/*====【新增】弹窗按钮行样式==== */
+.login-btn-row{display:flex;gap:12px;margin-top:22px;}
+.login-submit{flex:1;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,#3683f7,#24d4ee);color:#fff;font-size:16px;font-weight:bold;cursor:pointer;}
+.login-close{flex:1;padding:13px;border:1px solid #bbbbbb;border-radius:10px;background:#f5f5f5;color:#333;font-size:16px;font-weight:bold;cursor:pointer;}
+.login-tip{margin-top:14px;font-size:13px;color:#666;text-align:center;}
+.hero{position:relative;border-radius:24px;min-height:540px;overflow:hidden;color:#fff;text-align:center;margin-bottom:20px;border:1px solid var(--glass-border);}
+.orb1{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(54,131,247,0.3),transparent 65%);top:-120px;left:-100px;filter:blur(60px);}
+.orb2{position:absolute;width:440px;height:440px;border-radius:50%;background:radial-gradient(circle,rgba(36,212,238,0.25),transparent 65%);bottom:-100px;right:-80px;filter:blur(55px);}
+.hero-mask{position:absolute;inset:0;background:rgba(6,10,22,0.82);}
+.hero-inner{position:relative;z-index:2;padding:30px 20px;}
+.hero h1{font-size:46px;margin-bottom:14px;}
+.hero h1 span{background:linear-gradient(90deg,#80d4fc,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-desc{max-width:800px;margin:0 auto 24px;font-size:17px;color:#e5e7eb;line-height:1.7;}
+.mode-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;}
+.mode-card{min-width:200px;padding:18px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:16px;cursor:pointer;transition:0.25s;}
+.mode-card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.13);}
+.mode-card.active{border-color:var(--accent);background:rgba(54,131,247,0.16);}
+.btn-lg{padding:14px 28px;border-radius:12px;border:none;font-size:16px;font-weight:bold;cursor:pointer;margin:0 6px;}
+.btn-lg.blue{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;}
+.btn-lg.glass{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.2);}
+.entry-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1100px;margin:30px auto 0;}
+.entry-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;transition:0.25s;}
+.entry-card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.14);}
+.topbar{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.logo{display:flex;gap:10px;align-items:center;color:#fff;}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;}
+.nav{display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;}
+.nav button{border:none;background:transparent;color:#ddd;padding:10px 14px;border-radius:10px;font-size:14px;cursor:pointer;}
+.nav button.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.role-tag{padding:6px 12px;border-radius:99px;font-size:13px;font-weight:bold;}
+.stu-tag{background:rgba(36,212,238,0.2);color:#24d4ee;}
+.tea-tag{background:rgba(246,158,11,0.2);color:#fbbf24;}
+.btn{border:none;border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;font-weight:600;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;}
+.btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.14);}
+.btn-warning{background:var(--warning);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:7px 11px;font-size:13px;}
+.page{display:none;animation:fadeUp .4s;}
+.page.active{display:block;}
+.card{background:var(--card-white);border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 10px 28px rgba(0,0,0,0.08);}
+.card-title{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:bold;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:800px){.grid2{grid-template-columns:1fr;}}
+label{display:block;margin-top:10px;margin-bottom:4px;font-size:13px;color:#444;}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:14px;}
+textarea{min-height:90px;}
+.result{margin-top:14px;padding:12px;background:#eff6ff;border-radius:10px;white-space:pre-wrap;font-size:13px;line-height:1.6;}
+.warn{margin-top:12px;padding:10px;background:#fffbeb;border-radius:10px;font-size:13px;color:#92400e;}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.step{padding:10px 14px;border:1px solid #ccc;border-radius:10px;background:#fff;cursor:pointer;}
+.step.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;}
+.step-panel{display:none;}
+.step-panel.show{display:block;}
+.log-box{max-height:220px;overflow-y:auto;background:#f8fafc;padding:10px;border-radius:10px;border:1px solid #ddd;font-size:12.5px;}
+.quality-item{padding:14px;border:1px solid #ddd;border-radius:12px;margin-bottom:12px;}
+.quality-row{display:flex;justify-content:space-between;align-items:center;}
+.bar-bg{height:9px;background:#eee;border-radius:99px;margin-top:8px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width 0.7s;}
+.chat-area{min-height:300px;max-height:400px;overflow-y:auto;background:#f8fafc;border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;}
+.msg-ai{align-self:flex-start;background:#fff;border:1px solid #ddd;max-width:75%;padding:10px 12px;border-radius:10px;font-size:14px;}
+.msg-user{align-self:flex-end;background:var(--primary);color:#fff;max-width:75%;padding:10px 12px;border-radius:10px;font-size:14px;}
+.chat-input{display:flex;gap:8px;}
+#chatInput{flex:1;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+.stat-card{padding:18px;background:#fff;border-radius:14px;text-align:center;}
+.stat-num{font-size:32px;font-weight:bold;color:var(--primary);margin-bottom:4px;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:998;}
+.modal.show{display:flex;}
+.modal-inner{background:#fff;border-radius:16px;width:94%;max-width:640px;max-height:85vh;overflow-y:auto;}
+.modal-head{padding:14px 18px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;}
+.modal-body{padding:18px;}
+.modal-foot{padding:14px 18px;border-top:1px solid #ddd;display:flex;gap:10px;justify-content:flex-end;}
+.footer{text-align:center;color:#aaa;font-size:12px;margin-top:24px;}
+.doc-item{border:1px solid #ddd;border-radius:12px;padding:12px;margin:8px 0;background:#fafafa;}
+.doc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.doc-preview{min-height:80px;border:1px dashed #cccccc;border-radius:8px;padding:8px;background:#fff;}
+.doc-preview img{max-height:140px;max-width:100%;border-radius:6px;}
+input.doc-file{display:none;}
+.upload-btn{cursor:pointer;}
+.camera-box{background:#000;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+#camVideo{width:100%;display:block;}
+.camera-hint{font-size:13px;color:#666;margin-bottom:10px;}
+@media(max-width:900px){
+  .entry-row{grid-template-columns:1fr 1fr;}
+  .hero h1{font-size:32px;}
+}
+</style>
+</head>
+<body>
+<!--教师登录弹窗【修改：增加退出按钮】 -->
+<div class="login-modal" id="teacherLoginModal">
+  <div class="login-card">
+    <h2>👩‍🏫教师登录</h2>
+    <div class="login-item">
+      <label>账号</label>
+      <input id="teaUser" placeholder="输入教师账号">
+    </div>
+    <div class="login-item">
+      <label>密码</label>
+      <input id="teaPwd" type="password" placeholder="输入密码">
+    </div>
+    <div class="login-btn-row">
+      <button class="login-submit" onclick="doTeacherLogin()">登录</button>
+      <button class="login-close" onclick="closeTeacherLoginModal()">退出</button>
+    </div>
+    <div class="login-tip">默认账号：teacher，密码：123456<br><span style="color:#888">学生使用无需登录</span></div>
+  </div>
+</div>
+<div class="toast-container" id="toastBox"></div>
+<div class="app">
+<div class="hero" id="coverPage">
+  <div class="orb1"></div><div class="orb2"></div>
+  <div class="hero-mask"></div>
+  <div class="hero-inner">
+    <div style="font-size:13px;letter-spacing:1px;opacity:0.85;margin-bottom:16px;">车险理赔一体化仿真实训平台 V5.0</div>
+    <h1>车智勘 <span>车险理赔实训智能助教</span></h1>
+    <p class="hero-desc">报案登记、查勘定损、单证照片上传与摄像头拍照采集、核赔理算、结案归档。支持案例教学、素质画像、AI复盘。</p>
+    <div class="mode-row">
+      <div class="mode-card active" onclick="setTrainMode('full')" id="mFull">
+        <h4>✅完整全流程实训</h4>
+        <p>报案到结案全部环节</p>
+      </div>
+      <div class="mode-card" onclick="setTrainMode('reportOnly')" id="mRep">
+        <h4>📝仅报案实训</h4>
+        <p>只练习报案登记</p>
+      </div>
+      <div class="mode-card" onclick="setTrainMode('surveyOnly')" id="mSur">
+        <h4>🔍仅查勘实训</h4>
+        <p>只练习查勘定损</p>
+      </div>
+    </div>
+    <div>
+      <button class="btn-lg blue" onclick="goBiz()">🚀进入实训</button>
+      <button class="btn-lg glass" onclick="openReportWin()">📄导出报告</button>
+    </div>
+    <div class="entry-row">
+      <div class="entry-card" onclick="goBiz()"><div style="font-size:26px;margin-bottom:6px;">🚗</div><h4>理赔业务</h4><p>报案查勘核赔结案</p></div>
+      <div class="entry-card" onclick="goWorkbench()"><div style="font-size:26px;margin-bottom:6px;">👤</div><h4>学生工作台</h4><p>工单与历史记录</p></div>
+      <div class="entry-card" onclick="goQuality()"><div style="font-size:26px;margin-bottom:6px;">📊</div><h4>素质画像</h4><p>七维能力评估</p></div>
+      <div class="entry-card" onclick="goReview()"><div style="font-size:26px;margin-bottom:6px;">🔍</div><h4>AI错题复盘</h4><p>对话式实训分析</p></div>
+    </div>
+  </div>
+</div>
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">车</div>
+    <div><h2 style="color:#fff;font-size:20px;margin:0;">车智勘V5</h2><small style="color:#aaa;font-size:12px;">车险理赔实训｜支持单证上传与拍照</small></div>
+  </div>
+  <div class="nav" id="navWrap">
+    <button data-p="cover">封面</button>
+    <button data-p="biz">理赔业务</button>
+    <button data-p="workbench">工作台</button>
+    <button data-p="quality">素质画像</button>
+    <button data-p="review">AI复盘</button>
+    <button data-p="teacher">教师端</button>
+  </div>
+  <div class="top-actions">
+    <span class="role-tag stu-tag" id="roleLabel">👨‍🎓学生端</span>
+    <button class="btn btn-sm btn-primary" onclick="openReportWin()">报告</button>
+    <button class="btn btn-sm btn-danger" onclick="resetAllCase()">重置案件</button>
+    <button class="btn btn-sm btn-ghost" id="teaLogoutBtn" onclick="logoutTeacher()" style="display:none;">退出教师登录</button>
+  </div>
+</div>
+<div class="page" id="pageBiz">
+  <div class="card">
+    <div class="card-title">
+      📋理赔业务｜当前模式：<span id="modeText">完整全流程实训</span>
+      <div>
+        <select id="caseSel">
+          <option value="">选择案例模板</option>
+          <option value="c1">案例1｜大灯水晶脚断裂修换争议</option>
+          <option value="c2">案例2｜网约车营运车辆剐蹭事故</option>
+          <option value="c3">案例3｜车辆水淹推定全损事故</option>
+          <option value="c4">案例4｜人伤事故交强险垫付实训</option>
+          <option value="c5">案例5｜三者物损撞路边护栏设施</option>
+          <option value="c6">案例6｜玻璃单独破碎险理赔</option>
+        </select>
+        <button class="btn btn-sm btn-primary" onclick="loadCase()">✅导入案例</button>
+      </div>
+    </div>
+    <div class="steps">
+      <button class="step active" data-s="s1">①报案登记</button>
+      <button class="step" data-s="s2">②查勘定损</button>
+      <button class="step" data-s="s3">③单证审核</button>
+      <button class="step" data-s="s4">④核赔计算</button>
+      <button class="step" data-s="s5">⑤结案归档</button>
+    </div>
+    <div class="step-panel show" id="s1">
+      <div class="grid2">
+        <div><label>报案号</label><input id="rNo" readonly></div>
+        <div><label>车牌号</label><input id="rPlate" placeholder="鲁B·12345"></div>
+        <div><label>被保险人</label><input id="rName"></div>
+        <div><label>联系电话</label><input id="rPhone"></div>
+        <div><label>事故时间</label><input id="rTime" type="datetime-local"></div>
+        <div><label>事故地点</label><input id="rPlace"></div>
+        <div>
+          <label>事故类型</label>
+          <select id="rType">
+            <option>单方事故</option><option>双方事故</option><option>多方事故</option>
+            <option>人伤事故</option><option>水淹/自然灾害</option>
+          </select>
+        </div>
+        <div>
+          <label>是否报警</label>
+          <select id="rPolice"><option>是</option><option>否</option></select>
+        </div>
+      </div>
+      <label>事故经过</label>
+      <textarea id="rDesc"></textarea>
+      <div class="warn">车牌号、被保险人不能为空</div>
+      <button class="btn btn-primary" onclick="submitReport()">提交报案登记</button>
+      <div class="result" id="resReport">等待操作</div>
+    </div>
+    <div class="step-panel" id="s2">
+      <div class="grid2">
+        <div><label>关联报案号</label><input id="sNo" readonly></div>
+        <div><label>查勘员</label><input id="sMan"></div>
+        <div>
+          <label>查勘结论</label>
+          <select id="sRes">
+            <option>属于保险责任</option><option>不属于保险责任</option><option>需补充查勘</option>
+          </select>
+        </div>
+        <div><label>定损方式</label><select id="sMode"><option>4S店定损</option><option>综合修理厂定损</option><option>推定全损</option></select></div>
+        <div><label>配件费</label><input id="sPart" type="number" value="0"></div>
+        <div><label>工时费</label><input id="sLabor" type="number" value="0"></div>
+        <div><label>残值（元）</label><input id="sResid" type="number" value="0"></div>
+        <div><label>施救费（元）</label><input id="sRescue" type="number" value="0"></div>
+      </div>
+      <label>定损说明</label>
+      <textarea id="sDesc"></textarea>
+      <button class="btn btn-primary" onclick="submitSurvey()">提交查勘定损</button>
+      <div class="result" id="resSurvey">等待操作</div>
+    </div>
+    <div class="step-panel" id="s3">
+      <p>勾选单证，并可选择本地上传照片或调用摄像头拍照采集</p>
+      <div id="docHtml"></div>
+      <button class="btn btn-primary" onclick="submitAudit()">提交单证审核</button>
+      <div class="result" id="resAudit">等待操作</div>
+    </div>
+    <div class="step-panel" id="s4">
+      <div class="grid2">
+        <div><label>车辆损失</label><input id="cLoss" type="number" value="0"></div>
+        <div><label>交强险财产限额(元)</label><input id="cJq" type="number" value="2000"></div>
+        <div><label>商业三者险限额(元)</label><input id="cSan" type="number" value="1000000"></div>
+        <div><label>责任比例%</label><input id="cRate" type="number" value="100"></div>
+        <div><label>免赔率%</label><input id="cDed" type="number" value="0"></div>
+        <div><label>绝对免赔额</label><input id="cAbs" type="number" value="0"></div>
+      </div>
+      <button class="btn btn-primary" onclick="doCalc()">试算核赔</button>
+      <div class="result" id="resCalc">等待操作</div>
+    </div>
+    <div class="step-panel" id="s5">
+      <div class="grid2">
+        <div><label>关联报案号</label><input id="kNo" readonly></div>
+        <div><label>核赔金额</label><input id="kPay" type="number"></div>
+        <div><label>结案方式</label><select id="kMode"><option>正常赔付结案</option><option>拒赔结案</option><option>注销结案</option><option>协商结案</option></select></div>
+        <div><label>支付对象</label><input id="kPayee"></div>
+      </div>
+      <label>结案意见</label>
+      <textarea id="kDesc"></textarea>
+      <button class="btn btn-primary" onclick="submitClose()">提交结案归档</button>
+      <div class="result" id="resClose">等待操作</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📜操作日志</div>
+    <div class="log-box" id="operLog"></div>
+  </div>
+</div>
+<div class="page" id="pageWorkbench">
+  <div class="card">
+    <div class="card-title">👤学生工作台 <button class="btn btn-sm btn-primary" onclick="refreshWB()">刷新</button></div>
+    <div class="result" id="wbInfo">暂无案件数据</div>
+    <div style="margin-top:14px;padding:12px;background:#f0f7ff;border-radius:10px;white-space:pre-wrap;font-size:13px;line-height:1.7;" id="wbStat">统计信息加载中...</div>
+  </div>
+  <div class="card">
+    <div class="card-title">历史实训记录</div>
+    <div class="log-box" id="wbHistory"></div>
+  </div>
+</div>
+<div class="page" id="pageQuality">
+  <div class="card">
+    <div class="card-title">📊七维素质画像 <button class="btn btn-sm btn-primary" onclick="calcQuality()">重新计算</button></div>
+    <div id="qualityWrap"></div>
+  </div>
+</div>
+<div class="page" id="pageReview">
+  <div class="card">
+    <div class="card-title">🔍AI错题复盘</div>
+    <div class="chat-area" id="chatBox">
+      <div class="msg-ai">你好，AI助教，点击生成复盘开始分析。</div>
+    </div>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="输入消息回车发送">
+      <button class="btn btn-primary" onclick="sendChatMsg()">发送</button>
+      <button class="btn btn-warning" onclick="makeReview()">生成复盘</button>
+      <button class="btn btn-danger" onclick="clearChat()">清空</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="pageTeacher">
+  <div class="card">
+    <div class="card-title">👩‍🏫教师统计面板 <button class="btn btn-sm btn-primary" onclick="refreshTeacher()">刷新</button> <button class="btn btn-sm btn-danger" onclick="clearAllRecords()">清空全部记录</button></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="tTotal">0</div><div>实训总次数</div></div>
+      <div class="stat-card"><div class="stat-num" id="tAvg">0</div><div>平均分</div></div>
+      <div class="stat-card"><div class="stat-num" id="tFull">0%</div><div>完整流程占比</div></div>
+    </div>
+    <h4>🏆分数排行榜</h4>
+    <div id="rankScore"></div>
+    <h4 style="margin-top:16px;">⚡熟练度排行榜</h4>
+    <div id="rankProf"></div>
+  </div>
+</div>
+<div class="modal" id="reportModal">
+  <div class="modal-inner">
+    <div class="modal-head"><h3>实训报告</h3><button class="btn btn-sm btn-danger" onclick="closeReportWin()">关闭</button></div>
+    <div class="modal-body"><pre id="reportText"></pre></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="copyRep()">复制</button>
+      <button class="btn btn-ghost" onclick="downloadTxtRep()">下载TXT</button>
+      <button class="btn btn-primary" onclick="downloadPdfRep()">导出PDF</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="cameraModal">
+  <div class="modal-inner">
+    <div class="modal-head"><h3>📷 单证拍照采集</h3><button class="btn btn-sm btn-danger" onclick="closeCamera()">关闭</button></div>
+    <div class="modal-body">
+      <div class="camera-box">
+        <video id="camVideo" autoplay playsinline></video>
+      </div>
+      <div class="camera-hint">当前单证：<strong id="camDocName"></strong></div>
+      <button class="btn btn-primary" onclick="capturePhoto()">拍照</button>
+      <button class="btn btn-ghost" onclick="closeCamera()">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="footer">车智勘V5｜本地离线教学仿真，无法律效力｜照片仅本次会话有效，刷新页面丢失</div>
+</div>
+<script>
+"use strict";
+window.store = {
+  caseData:null,
+  logList:[],
+  score:{r:0,s:0,a:0,c:0,k:0},
+  quality:{info:0,norm:0,logic:0,match:0,calc:0,doc:0,flow:0},
+  done:{s1:false,s2:false,s3:false,s4:false,s5:false},
+  docChecked:[false,false,false,false,false,false,false,false,false,false],
+  docImages:[null,null,null,null,null,null,null,null,null,null],
+  cameraStream:null,
+  cameraDocIndex:null
+};
+window.trainMode = "full";
+// 教师登录状态
+let isTeacherLogon = localStorage.getItem("teaLogon") === "1";
+const DOC_ARR = ["报案记录","事故证明","驾驶证","行驶证","保险单","现场照片","定损单","维修发票","身份证","银行账户"];
+const caseLibrary = {
+  c1:{
+    rPlate:"鲁B·赛1001",rName:"王参赛",rPhone:"13811112222",
+    rTime:"2026-10-27T14:30",rPlace:"青岛实训大道",rType:"双方事故",rPolice:"是",
+    rDesc:"本车变道与对方车辆发生剐蹭，本车大灯水晶脚断裂，前保险杠受损，本车全责。",
+    sMan:"李查勘",sRes:"属于保险责任",sMode:"4S店定损",
+    sPart:26800,sLabor:3200,sResid:800,sRescue:0,
+    sDesc:"大灯水晶脚属于受力承载部位发生断裂，第三方胶粘修复无法达到原厂装车标准，建议更换大灯总成；保险杠可修复。"
+  },
+  c2:{
+    rPlate:"鲁B·赛2002",rName:"刘网约车",rPhone:"13822223333",
+    rTime:"2026-10-26T09:15",rPlace:"城市快速路出口",rType:"双方事故",rPolice:"是",
+    rDesc:"网约车正常行驶，被后方车辆追尾；本车为营运车辆，存在停运损失；对方仅投保交强险。",
+    sMan:"张查勘",sRes:"属于保险责任",sMode:"4S店定损",
+    sPart:6200,sLabor:3500,sResid:300,sRescue:200,
+    sDesc:"后部保险杠、尾灯损坏，配件工时分开核算；营运车辆停运损失属于间接损失，不属于保险赔付范围。"
+  },
+  c3:{
+    rPlate:"鲁B·赛3003",rName:"赵车主",rPhone:"13833334444",
+    rTime:"2026-10-20T20:00",rPlace:"低洼地下车库",rType:"水淹/自然灾害",rPolice:"否",
+    rDesc:"暴雨地下车库进水，车辆被水淹没至仪表台位置，发动机、车内电器模块大量进水受损。",
+    sMan:"孙查勘",sRes:"属于保险责任",sMode:"推定全损",
+    sPart:42000,sLabor:12000,sResid:14000,sRescue:1500,
+    sDesc:"车辆水淹至仪表台，大量电器总成损坏，维修成本接近车辆实际价值，做推定全损处理。"
+  },
+  c4:{
+    rPlate:"鲁B·赛4004",rName:"周先生",rPhone:"13844445555",
+    rTime:"2026-10-21T16:20",rPlace:"城区实训路口",rType:"人伤事故",rPolice:"是",
+    rDesc:"本车右转与骑行电动车行人发生碰撞，造成行人腿部受伤，已经送医院抢救治疗。",
+    sMan:"吴查勘",sRes:"属于保险责任",sMode:"综合修理厂定损",
+    sPart:1800,sLabor:1200,sResid:0,sRescue:0,
+    sDesc:"车辆前部外壳剐蹭受损；人伤案件需收集交警垫付通知书、医院抢救票据，交强险医疗限额1.8万元优先用于人伤救治。"
+  },
+  c5:{
+    rPlate:"鲁B·赛5005",rName:"陈师傅",rPhone:"13855556666",
+    rTime:"2026-10-22T22:10",rPlace:"绕城高速匝道",rType:"单方事故",rPolice:"是",
+    rDesc:"夜间行驶操作不当，车辆冲出车道撞击路边护栏，造成本车及道路护栏设施损坏。",
+    sMan:"郑查勘",sRes:"属于保险责任",sMode:"综合修理厂定损",
+    sPart:9600,sLabor:2800,sResid:500,sRescue:800,
+    sDesc:"本车前部受损；护栏属于第三者公共设施损失，需要路政部门出具损失认定材料，由三者险赔付。"
+  },
+  c6:{
+    rPlate:"鲁B·赛6006",rName:"林女士",rPhone:"13866667777",
+    rTime:"2026-10-23T08:40",rPlace:"小区露天停车场",rType:"单方事故",rPolice:"否",
+    rDesc:"高空坠物砸坏车辆前挡风玻璃，车身其余部位完好，无其他部件受损。已投保玻璃单独破碎险。",
+    sMan:"黄查勘",sRes:"属于保险责任",sMode:"4S店定损",
+    sPart:5400,sLabor:800,sResid:0,sRescue:0,
+    sDesc:"仅前挡风玻璃破碎，车身其他部位完好，使用玻璃单独破碎险进行赔付，不计免赔适用。"
+  }
+};
+window.getHis = function(){let s=localStorage.getItem("czk_his");return s?JSON.parse(s):[];};
+window.saveHis = function(arr){localStorage.setItem("czk_his",JSON.stringify(arr));};
+window.pushHis = function(obj){let arr=getHis();arr.push(obj);saveHis(arr);};
+window.showToast=function(msg,type="success"){
+  const box=document.getElementById("toastBox");
+  const d=document.createElement("div");d.className="toast "+type;d.innerText=msg;box.appendChild(d);
+  setTimeout(()=>d.remove(),2500);
+};
+
+//====【新增】关闭教师登录弹窗函数====
+function closeTeacherLoginModal(){
+  document.getElementById("teacherLoginModal").classList.remove("show");
+  document.getElementById("teaUser").value = "";
+  document.getElementById("teaPwd").value = "";
+}
+
+// =========教师登录逻辑 =========
+function doTeacherLogin(){
+  const u = document.getElementById("teaUser").value.trim();
+  const p = document.getElementById("teaPwd").value.trim();
+  if(u === "teacher" && p === "123456"){
+    isTeacherLogon = true;
+    localStorage.setItem("teaLogon","1");
+    closeTeacherLoginModal();
+    applyLoginUi();
+    showToast("✅教师登录成功，可以访问教师端");
+  }else{
+    showToast("账号或密码错误！默认账号teacher / 123456","warn");
+  }
+}
+function logoutTeacher(){
+  isTeacherLogon = false;
+  localStorage.removeItem("teaLogon");
+  applyLoginUi();
+  showToast("已退出教师登录");
+  switchPageInner("cover");
+}
+function applyLoginUi(){
+  const labelDom = document.getElementById("roleLabel");
+  const logoutBtn = document.getElementById("teaLogoutBtn");
+  if(isTeacherLogon){
+    labelDom.innerText = "👩‍🏫教师已登录";
+    labelDom.className = "role-tag tea-tag";
+    logoutBtn.style.display = "block";
+  }else{
+    labelDom.innerText = "👨‍🎓学生端";
+    labelDom.className = "role-tag stu-tag";
+    logoutBtn.style.display = "none";
+  }
+}
+// 页面跳转拦截，点击教师端先校验登录
+window.switchPageInner=function(target){
+  // 点击教师端，如果未登录，弹出登录框，禁止跳转页面
+  if(target === "teacher" && !isTeacherLogon){
+    document.getElementById("teacherLoginModal").classList.add("show");
+    return;
+  }
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll("#navWrap button").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`#navWrap button[data-p="${target}"]`)?.classList.add("active");
+  const cover = document.getElementById("coverPage");
+  if(target==="cover"){cover.style.display="block";}else{cover.style.display="none";}
+  const pid="page"+target.charAt(0).toUpperCase()+target.slice(1);
+  const el=document.getElementById(pid);
+  if(el)el.classList.add("active");
+  if(target==="quality")calcQuality();
+  if(target==="teacher")refreshTeacher();
+  if(target==="workbench")refreshWB();
+};
+window.goBiz=function(){switchPageInner("biz");};
+window.goWorkbench=function(){switchPageInner("workbench");};
+window.goQuality=function(){switchPageInner("quality");};
+window.goReview=function(){switchPageInner("review");};
+document.querySelectorAll("#navWrap button").forEach(b=>{
+  b.onclick=()=>switchPageInner(b.getAttribute("data-p"));
+});
+document.querySelectorAll(".steps .step").forEach(st=>{
+  st.onclick=function(){
+    document.querySelectorAll(".steps .step").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".step-panel").forEach(x=>x.classList.remove("show"));
+    this.classList.add("active");
+    const sid=this.getAttribute("data-s");
+    document.getElementById(sid).classList.add("show");
+  }
+});
+window.setTrainMode=function(mode){
+  trainMode=mode;
+  ["mFull","mRep","mSur"].forEach(id=>document.getElementById(id).classList.remove("active"));
+  if(mode==="full")document.getElementById("mFull").classList.add("active"),document.getElementById("modeText").innerText="完整全流程实训";
+  if(mode==="reportOnly")document.getElementById("mRep").classList.add("active"),document.getElementById("modeText").innerText="仅报案实训";
+  if(mode==="surveyOnly")document.getElementById("mSur").classList.add("active"),document.getElementById("modeText").innerText="仅查勘实训";
+  showToast("已切换实训模式");
+};
+function makeNo(){return "JX"+Date.now().toString().slice(-8);}
+window.submitReport=function(){
+  const plate=document.getElementById("rPlate").value.trim();
+  const name=document.getElementById("rName").value.trim();
+  if(!plate||!name){showToast("车牌号、被保险人不能为空","warn");return;}
+  const no=makeNo();
+  document.getElementById("rNo").value=no;
+  document.getElementById("sNo").value=no;
+  document.getElementById("kNo").value=no;
+  store.caseData={
+    no:no,plate:plate,name:name,phone:document.getElementById("rPhone").value,
+    time:document.getElementById("rTime").value,place:document.getElementById("rPlace").value,
+    type:document.getElementById("rType").value,desc:document.getElementById("rDesc").value
+  };
+  store.done.s1=true;
+  store.score.r=10;
+  store.logList.push("["+new Date().toLocaleTimeString()+"] 报案提交成功，报案号："+no);
+  document.getElementById("resReport").innerText="✅报案提交成功\n报案号："+no+"\n车牌："+plate;
+  renderDocList();
+  showToast("报案登记完成");
+};
+window.renderDocList=function(){
+  let html="";
+  DOC_ARR.forEach((txt,i)=>{
+    let imgHtml="";
+    if(store.docImages[i]){
+      imgHtml=`<div class="doc-preview"><img src="${store.docImages[i]}" alt="单证预览"></div>`;
+    }else{
+      imgHtml=`<div class="doc-preview">暂无照片</div>`;
+    }
+    html+=`
+    <div class="doc-item">
+      <div class="doc-row">
+        <label><input type="checkbox" ${store.docChecked[i]?"checked":""} onchange="store.docChecked[${i}]=this.checked"> ${txt}</label>
+        <input class="doc-file" type="file" accept="image/*" id="file${i}" onchange="handleDocUpload(${i},this)">
+        <button class="btn btn-sm btn-ghost upload-btn" onclick="document.getElementById('file${i}').click()">📷选择图片</button>
+        <button class="btn btn-sm btn-primary" onclick="openCamera(${i})">📸拍照采集</button>
+      </div>
+      ${imgHtml}
+    </div>
+    `;
+  });
+  document.getElementById("docHtml").innerHTML=html;
+};
+window.handleDocUpload=function(idx,inputDom){
+  const file=inputDom.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    store.docImages[idx]=e.target.result;
+    renderDocList();
+    showToast(DOC_ARR[idx]+"图片上传成功");
+  };
+  reader.readAsDataURL(file);
+};
+window.openCamera=async function(idx){
+  store.cameraDocIndex=idx;
+  document.getElementById("camDocName").innerText=DOC_ARR[idx];
+  document.getElementById("cameraModal").classList.add("show");
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    store.cameraStream = stream;
+    document.getElementById("camVideo").srcObject = stream;
+    showToast("摄像头已开启，请点击拍照");
+  }catch(err){
+    showToast("无法打开摄像头："+err.message,"error");
+    closeCamera();
+  }
+};
+window.capturePhoto=function(){
+  const video=document.getElementById("camVideo");
+  if(!video.srcObject){showToast("摄像头未开启","warn");return;}
+  const canvas=document.createElement("canvas");
+  canvas.width=video.videoWidth||640;
+  canvas.height=video.videoHeight||480;
+  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+  const dataUrl=canvas.toDataURL("image/jpeg",0.85);
+  const idx=store.cameraDocIndex;
+  if(idx!==null){
+    store.docImages[idx]=dataUrl;
+    showToast(DOC_ARR[idx]+"拍照成功");
+    renderDocList();
+  }
+  closeCamera();
+};
+window.closeCamera=function(){
+  if(store.cameraStream){
+    store.cameraStream.getTracks().forEach(t=>t.stop());
+    store.cameraStream=null;
+  }
+  document.getElementById("camVideo").srcObject=null;
+  document.getElementById("cameraModal").classList.remove("show");
+  store.cameraDocIndex=null;
+};
+window.submitSurvey=function(){
+  if(!store.caseData){showToast("请先完成报案","warn");return;}
+  store.caseData.sMan=document.getElementById("sMan").value;
+  store.caseData.sRes=document.getElementById("sRes").value;
+  store.caseData.sMode=document.getElementById("sMode").value;
+  store.caseData.sPart=Number(document.getElementById("sPart").value||0);
+  store.caseData.sLabor=Number(document.getElementById("sLabor").value||0);
+  store.caseData.sResid=Number(document.getElementById("sResid").value||0);
+  store.caseData.sRescue=Number(document.getElementById("sRescue").value||0);
+  store.caseData.sDesc=document.getElementById("sDesc").value;
+  store.done.s2=true;
+  store.score.s=45;
+  store.logList.push("["+new Date().toLocaleTimeString()+"] 查勘定损提交");
+  document.getElementById("resSurvey").innerText="✅查勘定损提交完成\n配件费："+store.caseData.sPart+"\n工时费："+store.caseData.sLabor;
+  document.getElementById("cLoss").value = store.caseData.sPart+store.caseData.sLabor;
+  showToast("查勘定损完成");
+};
+window.submitAudit=function(){
+  let cntCheck=store.docChecked.filter(x=>x===true).length;
+  let cntUpload=store.docImages.filter(img=>img!==null).length;
+  store.done.s3=true;
+  store.score.a = Math.round( (cntCheck*0.6 + cntUpload*0.4)/DOC_ARR.length *15 );
+  store.logList.push("["+new Date().toLocaleTimeString()+"] 单证审核，勾选："+cntCheck+"项，已上传照片："+cntUpload+"项");
+  document.getElementById("resAudit").innerText="✅单证审核完成\n已勾选单证："+cntCheck+"项\n已上传单证照片："+cntUpload+"项";
+  showToast("单证审核完成");
+};
+window.doCalc=function(){
+  const loss=Number(document.getElementById("cLoss").value||0);
+  const rate=Number(document.getElementById("cRate").value||100)/100;
+  const ded=Number(document.getElementById("cDed").value||0)/100;
+  const abs=Number(document.getElementById("cAbs").value||0);
+  const pay=Math.max(0,Math.round(loss*rate*(1-ded)-abs));
+  store.done.s4=true;
+  store.score.c=20;
+  document.getElementById("kPay").value=pay;
+  store.logList.push("["+new Date().toLocaleTimeString()+"] 核赔试算，赔付金额："+pay);
+  document.getElementById("resCalc").innerText="✅核赔试算完成\n计算赔付金额："+pay+" 元";
+  showToast("核赔试算完成");
+};
+window.submitClose=function(){
+  if(!store.caseData){showToast("请完成前面流程","warn");return;}
+  store.caseData.kPay=Number(document.getElementById("kPay").value||0);
+  store.caseData.kMode=document.getElementById("kMode").value;
+  store.caseData.kPayee=document.getElementById("kPayee").value;
+  store.caseData.kDesc=document.getElementById("kDesc").value;
+  store.done.s5=true;
+  store.score.k=10;
+  const total=store.score.r+store.score.s+store.score.a+store.score.c+store.score.k;
+  store.logList.push("["+new Date().toLocaleTimeString()+"] 结案归档完成，总分："+total);
+  pushHis({
+    time:new Date().toLocaleString(),
+    score:total,
+    doneSteps:JSON.parse(JSON.stringify(store.done)),
+    caseNo:store.caseData.no||"",
+    mode:trainMode
+  });
+  document.getElementById("resClose").innerText="✅结案归档成功，本次实训总分："+total+"/100";
+  showToast("结案归档完成，记录已保存本地");
+};
+window.calcQuality=function(){
+  const q=store.quality;
+  q.info = (store.caseData?.plate && store.caseData?.name) ? 82 : 0;
+  q.norm = (store.caseData?.desc?.length>12) ?76:0;
+  q.logic = (store.caseData?.sDesc?.length>12)?80:0;
+  q.match = ((store.caseData?.sPart>0)&&(store.caseData?.sLabor>0))?86:0;
+  q.calc = store.done.s4?90:0;
+  q.doc = Math.round( (store.docChecked.filter(b=>b).length *0.6 + store.docImages.filter(i=>i).length*0.4 ) / DOC_ARR.length*100);
+  let doneCnt=Object.values(store.done).filter(v=>v===true).length;
+  q.flow = Math.round(doneCnt/5*100);
+  const arr=[
+    {lab:"信息录入完整性",val:q.info},
+    {lab:"字段规范性",val:q.norm},
+    {lab:"定损逻辑合理性",val:q.logic},
+    {lab:"配件工时匹配度",val:q.match},
+    {lab:"理算计算正确率",val:q.calc},
+    {lab:"单证资料完整性",val:q.doc},
+    {lab:"业务流程合规性",val:q.flow}
+  ];
+  let html="";
+  arr.forEach(it=>{
+    let tag="待提升";if(it.val>=80)tag="优秀";else if(it.val>=60)tag="良好";
+    html+=`
+    <div class="quality-item">
+      <div class="quality-row"><span>${it.lab}</span><span style="font-weight:bold;font-size:22px;color:#3683f7;">${it.val}</span><span>${tag}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${it.val}%"></div></div>
+    </div>`;
+  });
+  document.getElementById("qualityWrap").innerHTML=html;
+};
+window.sendChatMsg=function(){
+  const inp=document.getElementById("chatInput");
+  const txt=inp.value.trim();if(!txt)return;
+  const box=document.getElementById("chatBox");
+  box.innerHTML+=`<div class="msg-user">${txt}</div>`;
+  box.scrollTop=box.scrollHeight;
+  inp.value="";
+  setTimeout(()=>{
+    box.innerHTML+=`<div class="msg-ai">收到你的提问。当前实训得分：${store.score.r+store.score.s+store.score.a+store.score.c+store.score.k}，你可以继续提问或者点击生成复盘查看扣分点。</div>`;
+    box.scrollTop=box.scrollHeight;
+  },400);
+};
+window.makeReview=function(){
+  const box=document.getElementById("chatBox");
+  box.innerHTML+=`<div class="msg-ai">📋实训复盘分析：\n1.报案：${store.done.s1?"已完成":"未完成"}\n2.查勘：${store.done.s2?"已完成":"未完成"}\n3.单证：${store.done.s3?"已完成":"未完成"}\n4.核赔：${store.done.s4?"已完成":"未完成"}\n5.结案：${store.done.s5?"已完成":"未完成"}\n提示：请按顺序执行业务环节，配件工时分开填写，单证尽量勾选并上传照片。</div>`;
+  box.scrollTop=box.scrollHeight;
+};
+window.clearChat=function(){document.getElementById("chatBox").innerHTML=`<div class="msg-ai">对话已清空。</div>`;};
+window.refreshWB=function(){
+  const total=store.score.r+store.score.s+store.score.a+store.score.c+store.score.k;
+  const doneCnt=Object.values(store.done).filter(v=>true===v).length;
+  document.getElementById("wbInfo").innerText=`当前案件号：${store.caseData?.no||"无"}\n当前总分：${total}/100\n已完成环节：${doneCnt}/5`;
+  const his=getHis();
+  let htm="";
+  if(his.length===0)htm="暂无历史实训记录，请完成一次结案归档自动保存";
+  else his.forEach(r=>htm+=`[${r.time}] 得分：${r.score} 模式：${r.mode}\n`);
+  document.getElementById("wbHistory").innerText=htm;
+  let statText="";
+  const totalCount = his.length;
+  statText += `实训累计次数：${totalCount} 次\n`;
+  if(totalCount>0){
+    let sum = 0;
+    his.forEach(i=>sum += Number(i.score));
+    const avgScore = (sum / totalCount).toFixed(1);
+    statText += `实训平均分：${avgScore} 分\n`;
+    const sortByScore = [...his].sort((a,b)=>b.score - a.score);
+    let myScoreRank = sortByScore.findIndex(x=>x.score === total)+1;
+    statText += `分数排名：第 ${myScoreRank} 名\n`;
+    const sortByProf = [...his].sort((a,b)=>{
+      const fa = a.doneSteps.s1 && a.doneSteps.s2 && a.doneSteps.s3 && a.doneSteps.s4 && a.doneSteps.s5;
+      const fb = b.doneSteps.s1 && b.doneSteps.s2 && b.doneSteps.s3 && b.doneSteps.s4 && b.doneSteps.s5;
+      if(fb !== fa) return fb ?1:-1;
+      return b.score - a.score;
+    });
+    let myProfRank = sortByProf.findIndex(x=>x.score === total)+1;
+    statText += `熟练度排名：第 ${myProfRank} 名`;
+  }else{
+    statText += `实训平均分：暂无\n分数排名：暂无\n熟练度排名：暂无`;
+  }
+  document.getElementById("wbStat").innerText = statText;
+};
+window.refreshTeacher=function(){
+  const his=getHis();
+  const totalCnt=his.length;
+  let sumScore=0;let fullCnt=0;
+  his.forEach(it=>{
+    sumScore+=Number(it.score||0);
+    const d=it.doneSteps;
+    if(d.s1&&d.s2&&d.s3&&d.s4&&d.s5) fullCnt++;
+  });
+  const avg=totalCnt>0?(sumScore/totalCnt).toFixed(1):0;
+  const fullRate=totalCnt>0?Math.round(fullCnt/totalCnt*100):0;
+  document.getElementById("tTotal").innerText=totalCnt;
+  document.getElementById("tAvg").innerText=avg;
+  document.getElementById("tFull").innerText=fullRate+"%";
+  const sortScore=[...his].sort((a,b)=>b.score-a.score);
+  let sRankHtml="";
+  sortScore.forEach((r,i)=>sRankHtml+=`${i+1}. 得分：${r.score}｜时间：${r.time}\n`);
+  document.getElementById("rankScore").innerText=sRankHtml||"暂无数据";
+  const sortProf=[...his].sort((a,b)=>{
+    const fa=a.doneSteps.s1&&a.doneSteps.s2&&a.doneSteps.s3&&a.doneSteps.s4&&a.doneSteps.s5?1:0;
+    const fb=b.doneSteps.s1&&b.doneSteps.s2&&b.doneSteps.s3&&b.doneSteps.s4&&b.doneSteps.s5?1:0;
+    if(fb!==fa)return fb-fa;return b.score-a.score;
+  });
+  let pRankHtml="";
+  sortProf.forEach((r,i)=>{
+    const isFull=r.doneSteps.s1&&r.doneSteps.s2&&r.doneSteps.s3&&r.doneSteps.s4&&r.doneSteps.s5?"✅完整":"❌未完成全部";
+    pRankHtml+=`${i+1}. ${isFull}｜得分${r.score}｜${r.time}\n`;
+  });
+  document.getElementById("rankProf").innerText=pRankHtml||"暂无数据";
+};
+window.clearAllRecords=function(){localStorage.removeItem("czk_his");showToast("全部历史记录已清空");refreshTeacher();};
+window.resetAllCase=function(){
+  store.caseData=null;
+  store.logList=[];
+  store.score={r:0,s:0,a:0,c:0,k:0};
+  store.done={s1:false,s2:false,s3:false,s4:false,s5:false};
+  store.docChecked=[false,false,false,false,false,false,false,false,false,false];
+  store.docImages=[null,null,null,null,null,null,null,null,null,null];
+  ["rNo","rPlate","rName","rPhone","rTime","rPlace","rDesc","sNo","sMan","sPart","sLabor","sResid","sRescue","sDesc","cLoss","cJq","cSan","cRate","cDed","cAbs","kNo","kPay","kPayee","kDesc"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value="";
+  });
+  document.getElementById("resReport").innerText="等待操作";
+  document.getElementById("resSurvey").innerText="等待操作";
+  document.getElementById("resAudit").innerText="等待操作";
+  document.getElementById("resCalc").innerText="等待操作";
+  document.getElementById("resClose").innerText="等待操作";
+  renderDocList();
+  showToast("当前案件已重置，单证照片已清空");
+};
+window.loadCase=function(){
+  const selKey = document.getElementById("caseSel").value;
+  if(!selKey){showToast("请选择案例","warn");return;}
+  const c = caseLibrary[selKey];
+  if(!c){return;}
+  document.getElementById("rPlate").value = c.rPlate||"";
+  document.getElementById("rName").value = c.rName||"";
+  document.getElementById("rPhone").value = c.rPhone||"";
+  document.getElementById("rTime").value = c.rTime||"";
+  document.getElementById("rPlace").value = c.rPlace||"";
+  document.getElementById("rType").value = c.rType||"单方事故";
+  document.getElementById("rPolice").value = c.rPolice||"是";
+  document.getElementById("rDesc").value = c.rDesc||"";
+  document.getElementById("sMan").value = c.sMan||"";
+  document.getElementById("sRes").value = c.sRes||"属于保险责任";
+  document.getElementById("sMode").value = c.sMode||"4S店定损";
+  document.getElementById("sPart").value = c.sPart||0;
+  document.getElementById("sLabor").value = c.sLabor||0;
+  document.getElementById("sResid").value = c.sResid||0;
+  document.getElementById("sRescue").value = c.sRescue||0;
+  document.getElementById("sDesc").value = c.sDesc||"";
+  showToast("✅案例模板已填充，请先提交报案登记");
+};
+window.openReportWin=function(){document.getElementById("reportModal").classList.add("show");makeReportText();};
+window.closeReportWin=function(){document.getElementById("reportModal").classList.remove("show");};
+window.makeReportText=function(){
+  const total=store.score.r+store.score.s+store.score.a+store.score.c+store.score.k;
+  const uploadCount=store.docImages.filter(i=>i).length;
+  let txt=`====车智勘实训报告====
+报案号：${store.caseData?.no||"未生成"}
+车牌：${store.caseData?.plate||"-"}
+被保险人：${store.caseData?.name||"-"}
+【得分情况】
+报案：${store.score.r}/10
+查勘：${store.score.s}/45
+单证：${store.score.a}/15
+核赔：${store.score.c}/20
+结案：${store.score.k}/10
+本次总分：${total}/100
+单证统计：
+已勾选单证：${store.docChecked.filter(x=>x).length}项
+已上传单证照片：${uploadCount}项
+`;
+  document.getElementById("reportText").innerText=txt;
+};
+window.copyRep=function(){
+  const t=document.getElementById("reportText").innerText;
+  navigator.clipboard.writeText(t).then(()=>showToast("已复制"));
+};
+window.downloadTxtRep=function(){
+  const t=document.getElementById("reportText").innerText;
+  const blob=new Blob([t],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="实训报告.txt";a.click();
+};
+window.downloadPdfRep=function(){
+  const t=document.getElementById("reportText").innerText;
+  const wrap=document.createElement("div");
+  wrap.style.padding="30px";wrap.style.background="#fff";wrap.style.whiteSpace="pre-wrap";wrap.innerText=t;
+  document.body.appendChild(wrap);
+  html2pdf().set({margin:10,filename:"实训报告.pdf"}).from(wrap).save().then(()=>{wrap.remove();showToast("PDF导出完成");});
+};
+document.getElementById("chatInput").onkeydown=function(e){if(e.key==="Enter")sendChatMsg();};
+window.addEventListener("beforeunload",()=>{
+  if(store.cameraStream){
+    store.cameraStream.getTracks().forEach(t=>t.stop());
+  }
+});
+//初始化
+(function init(){
+  applyLoginUi();
+  renderDocList();
+  calcQuality();
+})();
+</script>
+</body>
+</html>
